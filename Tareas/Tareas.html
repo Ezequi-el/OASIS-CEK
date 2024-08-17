@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestor de Tareas</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        h1 {
+            font-size: 24px;
+            font-weight: 500;
+        }
+        .add-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+        .add-btn:hover {
+            transform: rotate(90deg);
+        }
+        .task-input {
+            width: 100%;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+        }
+        .task-input:focus {
+            outline: none;
+            border-color: #4CAF50;
+            box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+        }
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .btn:after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 5px;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.5);
+            opacity: 0;
+            border-radius: 100%;
+            transform: scale(1, 1) translate(-50%);
+            transform-origin: 50% 50%;
+        }
+        .btn:focus:not(:active)::after {
+            animation: ripple 1s ease-out;
+        }
+        @keyframes ripple {
+            0% {
+                transform: scale(0, 0);
+                opacity: 1;
+            }
+            20% {
+                transform: scale(25, 25);
+                opacity: 1;
+            }
+            100% {
+                opacity: 0;
+                transform: scale(40, 40);
+            }
+        }
+        .btn-primary {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: #45a049;
+        }
+        .btn-secondary {
+            background-color: #f1f1f1;
+            color: #333;
+        }
+        .btn-secondary:hover {
+            background-color: #e0e0e0;
+        }
+        .calendar {
+            margin-top: 20px;
+        }
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+        }
+        .calendar-day {
+            aspect-ratio: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #fff;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .calendar-day:hover {
+            background-color: #e0e0e0;
+            transform: scale(1.1);
+        }
+        .calendar-day.selected {
+            background-color: #4CAF50;
+            color: white;
+            transform: scale(1.1);
+        }
+        .task-details {
+            margin-top: 20px;
+        }
+        .task-details input, .task-details select {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+        .task-details input:focus, .task-details select:focus {
+            outline: none;
+            border-color: #4CAF50;
+            box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        .time-remaining {
+            font-size: 12px;
+            color: #999;
+        }
+        .completed {
+            text-decoration: line-through;
+            color: #bbb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>TAREAS</h1>
+            <button class="add-btn" id="addBtn">+</button>
+        </header>
+        
+        <div class="task-input-container">
+            <input type="text" class="task-input" id="taskInput" placeholder="Nombre de la actividad">
+            <input type="datetime-local" class="task-input" id="taskDateTime">
+        </div>
+        
+        <button class="btn btn-primary" id="addTaskBtn">Agregar/Actualizar Actividad</button>
+        
+        <div class="calendar fade-in" id="calendar" style="display: none;">
+            <div class="calendar-header">
+                <button class="btn btn-secondary" id="prevMonth">&lt;</button>
+                <h2 id="currentMonth">Abril 2023</h2>
+                <button class="btn btn-secondary" id="nextMonth">&gt;</button>
+            </div>
+            <div class="calendar-grid" id="calendarGrid"></div>
+        </div>
+        
+        <div class="task-details fade-in" id="taskDetails" style="display: none;">
+            <h3>Actividades Programadas</h3>
+            <ul id="taskList"></ul>
+        </div>
+    </div>
+
+    <script>
+        const addBtn = document.getElementById('addBtn');
+        const taskInput = document.getElementById('taskInput');
+        const taskDateTime = document.getElementById('taskDateTime');
+        const addTaskBtn = document.getElementById('addTaskBtn');
+        const calendar = document.getElementById('calendar');
+        const calendarGrid = document.getElementById('calendarGrid');
+        const currentMonthEl = document.getElementById('currentMonth');
+        const prevMonthBtn = document.getElementById('prevMonth');
+        const nextMonthBtn = document.getElementById('nextMonth');
+        const taskDetails = document.getElementById('taskDetails');
+        const taskList = document.getElementById('taskList');
+
+        let currentDate = new Date();
+        let editingIndex = null;
+
+        function updateCalendar() {
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+            
+            currentMonthEl.textContent = new Date(year, month).toLocaleString('default', { month: 'long', year: 'numeric' });
+            
+            calendarGrid.innerHTML = '';
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            
+            for (let i = 1; i <= daysInMonth; i++) {
+                const dayEl = document.createElement('div');
+                dayEl.classList.add('calendar-day');
+                dayEl.textContent = i;
+                dayEl.addEventListener('click', () => selectDate(i));
+                calendarGrid.appendChild(dayEl);
+            }
+        }
+
+        function selectDate(day) {
+            const selectedDay = document.querySelector('.calendar-day.selected');
+            if (selectedDay) {
+                selectedDay.classList.remove('selected');
+            }
+            event.target.classList.add('selected');
+        }
+
+        addBtn.addEventListener('click', () => {
+            taskInput.style.display = 'block';
+            taskDateTime.style.display = 'block';
+            calendar.style.display = 'block';
+            updateCalendar();
+            editingIndex = null; // Reiniciar índice de edición al abrir el formulario
+            taskInput.value = ''; // Limpiar campo de entrada al abrir
+            taskDateTime.value = ''; // Limpiar campo de fecha/hora al abrir
+        });
+
+        prevMonthBtn.addEventListener('click', () => {
+            currentDate.setMonth(currentDate.getMonth() - 1);
+            updateCalendar();
+        });
+
+        nextMonthBtn.addEventListener('click', () => {
+            currentDate.setMonth(currentDate.getMonth() + 1);
+            updateCalendar();
+        });
+
+        addTaskBtn.addEventListener('click', () => {
+            const activity = taskInput.value.trim();
+            const dateTime = taskDateTime.value;
+
+            if (activity && dateTime) {
+                if (editingIndex !== null) {
+                    // Editar tarea existente
+                    const listItem = taskList.children[editingIndex];
+                    listItem.querySelector('.task-name').textContent = activity;
+                    listItem.querySelector('.task-time').textContent = new Date(dateTime).toLocaleString();
+                    listItem.querySelector('.time-remaining').textContent = getTimeRemaining(dateTime);
+                    editingIndex = null; // Reiniciar índice de edición
+                } else {
+                    // Agregar nueva tarea
+                    const listItem = document.createElement('li');
+                    listItem.innerHTML = `
+                        <span class="task-name">${activity}</span> - <span class="task-time">${new Date(dateTime).toLocaleString()}</span>
+                        <span class="time-remaining">${getTimeRemaining(dateTime)}</span>
+                        <button class="btn btn-secondary complete-btn">✔️</button>
+                        <button class="btn btn-secondary edit-btn">✏️</button>
+                    `;
+                    taskList.appendChild(listItem);
+                    taskDetails.style.display = 'block';
+
+                    // Agregar event listeners para los botones de completar y editar
+                    listItem.querySelector('.complete-btn').addEventListener('click', () => {
+                        listItem.querySelector('.task-name').classList.toggle('completed');
+                    });
+
+                    listItem.querySelector('.edit-btn').addEventListener('click', () => {
+                        taskInput.value = activity;
+                        taskDateTime.value = dateTime;
+                        editingIndex = Array.from(taskList.children).indexOf(listItem);
+                    });
+                }
+                taskInput.value = '';
+                taskDateTime.value = '';
+            } else {
+                alert("Por favor, completa todos los campos.");
+            }
+        });
+
+        function getTimeRemaining(dateTime) {
+            const now = new Date();
+            const eventTime = new Date(dateTime);
+            const remainingTime = eventTime - now;
+
+            if (remainingTime < 0) return "Actividad ya pasada";
+
+            const days = Math.floor(remainingTime / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((remainingTime % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((remainingTime % (1000 * 60 * 60)) / (1000 * 60));
+            return `Faltan ${days}d ${hours}h ${minutes}m`;
+        }
+
+        updateCalendar();
+    </script>
+</body>
+</html>
