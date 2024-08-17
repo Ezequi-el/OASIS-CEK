@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clientes</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+        .cliente {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            border-bottom: 1px solid #e0e0e0;
+            align-items: center;
+            position: relative;
+        }
+        .cliente:last-child {
+            border-bottom: none;
+        }
+        .button {
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .button:hover {
+            background-color: #45a049;
+        }
+        .add-client {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .search-client {
+            background-color: #f0f0f0;
+            color: #333;
+        }
+        .form-container {
+            display: none;
+            margin-bottom: 20px;
+        }
+        .form-container input {
+            width: calc(100% - 20px);
+            padding: 10px;
+            margin: 5px 0;
+        }
+        .more-info {
+            display: none;
+            flex-direction: column;
+            position: absolute;
+            background: white;
+            border: 1px solid #ccc;
+            padding: 10px;
+            z-index: 1;
+            top: 30px; /* Ajuste para que aparezca sobre los puntos */
+            right: 0;
+        }
+        .ellipsis {
+            cursor: pointer;
+        }
+        .notification {
+            color: green;
+            text-align: center;
+            margin: 10px 0;
+        }
+        .search-container {
+            display: none;
+            margin-top: 20px;
+            text-align: center;
+        }
+        #search {
+            width: 80%; /* Aumentar tamaño del campo de búsqueda */
+            padding: 10px;
+            margin: 0 auto;
+        }
+        .clientes-busqueda {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Clientes</h1>
+        <div id="clientes-list"></div>
+        <div class="notification" id="notification"></div>
+        <button class="button add-client" onclick="toggleForm()">Agregar Clientes</button>
+        <div class="form-container" id="form-container">
+            <input type="text" id="nombre" placeholder="Nombre" required>
+            <input type="text" id="telefono" placeholder="Número de Teléfono (10 dígitos)" maxlength="10" required>
+            <input type="email" id="correo" placeholder="Correo Electrónico" required>
+            <button class="button" onclick="addClient()">Agregar / Actualizar</button>
+        </div>
+        <button class="button search-client" onclick="toggleSearch()">Buscar Cliente</button>
+        <div class="search-container" id="search-container">
+            <input type="text" id="search" placeholder="Buscar cliente" oninput="searchClient()">
+        </div>
+        <div class="clientes-busqueda" id="clientes-busqueda"></div>
+    </div>
+
+    <script>
+        let clients = [];
+        let editingIndex = null;
+
+        function toggleForm() {
+            const formContainer = document.getElementById('form-container');
+            formContainer.style.display = formContainer.style.display === 'none' || formContainer.style.display === '' ? 'block' : 'none';
+            resetForm();
+        }
+
+        function addClient() {
+            const nombre = document.getElementById('nombre').value;
+            const telefono = document.getElementById('telefono').value;
+            const correo = document.getElementById('correo').value;
+
+            // Validaciones mejoradas
+            if (!nombre || telefono.length !== 10 || !validateEmail(correo)) {
+                alert('Por favor, completa todos los campos correctamente.');
+                return;
+            }
+
+            if (editingIndex !== null) {
+                // Actualizar cliente existente
+                clients[editingIndex] = { nombre, telefono, correo };
+                document.getElementById('notification').innerText = 'Se ha actualizado la información del cliente correctamente.';
+                editingIndex = null;
+            } else {
+                // Agregar nuevo cliente
+                clients.push({ nombre, telefono, correo });
+                document.getElementById('notification').innerText = 'Se ha agregado el cliente correctamente.';
+            }
+
+            resetForm();
+            setTimeout(() => {
+                document.getElementById('notification').innerText = '';
+            }, 3000);
+            toggleForm();
+        }
+
+        function validateEmail(email) {
+            // Validación de correo más completa utilizando expresión regular
+            const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return regex.test(email);
+        }
+
+        function editClient(index) {
+            const client = clients[index];
+            document.getElementById('nombre').value = client.nombre;
+            document.getElementById('telefono').value = client.telefono;
+            document.getElementById('correo').value = client.correo;
+            editingIndex = index;
+            document.getElementById('form-container').style.display = 'block'; // Mostrar el formulario automáticamente
+        }
+
+        function showDetails(index) {
+            // Redirigir a la página de detalles del cliente
+            window.location.href = `detalle_cliente.html?cliente=${index}`;
+        }
+
+        function toggleSearch() {
+            const searchContainer = document.getElementById('search-container');
+            searchContainer.style.display = searchContainer.style.display === 'none' || searchContainer.style.display === '' ? 'block' : 'none';
+            updateSearchResults();
+        }
+
+        function searchClient() {
+            updateSearchResults();
+        }
+
+        function updateSearchResults() {
+            const query = document.getElementById('search').value.toLowerCase();
+            const filteredClients = clients.filter(client => 
+                client.nombre.toLowerCase().includes(query) || 
+                client.telefono.includes(query) || 
+                client.correo.toLowerCase().includes(query)
+            );
+            const clientesBusqueda = document.getElementById('clientes-busqueda');
+            clientesBusqueda.innerHTML = '';
+            filteredClients.forEach((client, index) => {
+                const clientDiv = document.createElement('div');
+                clientDiv.className = 'cliente';
+                clientDiv.innerHTML = `
+                    <span>${client.nombre} - ${client.telefono} - ${client.correo}</span>
+                    <span class="ellipsis" onclick="toggleOptionsBusqueda(${index})">...</span>
+                    <div class="more-info" id="more-info-busqueda-${index}">
+                        <button onclick="editClient(${index})">Editar Cliente</button>
+                        <button onclick="showDetails(${index})">Más Información</button>
+                    </div>
+                `;
+                clientesBusqueda.appendChild(clientDiv);
+            });
+        }
+
+        function toggleOptionsBusqueda(index) {
+            const moreInfoDiv = document.getElementById(`more-info-busqueda-${index}`);
+            const allMoreInfoDivs = document.querySelectorAll('.more-info');
+            allMoreInfoDivs.forEach(div => {
+                if (div !== moreInfoDiv) {
+                    div.style.display = 'none';
+                }
+            });
+            moreInfoDiv.style.display = moreInfoDiv.style.display === 'flex' ? 'none' : 'flex';
+        }
+
+        function resetForm() {
+            document.getElementById('nombre').value = '';
+            document.getElementById('telefono').value = '';
+            document.getElementById('correo').value = '';
+            editingIndex = null; // Reiniciar el índice de edición
+        }
+    </script>
+</body>
+</html>
