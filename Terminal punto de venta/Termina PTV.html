@@ -86,11 +86,31 @@
             background-color: #d4e4ff;
             transform: scale(1.02);
         }
-        video {
+        .camera-container {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
             display: none;
+        }
+        .close-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: red;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            padding: 5px 10px;
+        }
+        video {
             width: 100%;
-            border-radius: 8px;
-            margin-top: 20px;
+            border-radius: 12px;
         }
         .keyboard {
             display: none;
@@ -195,7 +215,10 @@
             </div>
         </div>
 
-        <video id="video" autoplay></video>
+        <div class="camera-container" id="camera-container">
+            <button class="close-button" onclick="stopCamera()">X</button>
+            <video id="video" autoplay></video>
+        </div>
 
         <table id="product-table" style="display:none;">
             <thead>
@@ -222,12 +245,13 @@
 
         async function startCamera() {
             const video = document.getElementById('video');
+            const cameraContainer = document.getElementById('camera-container');
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({
                     video: { facingMode: { exact: "environment" } } // Seleccionar la cámara trasera
                 });
                 video.srcObject = stream;
-                video.style.display = 'block'; // Mostrar el video
+                cameraContainer.style.display = 'block'; // Mostrar el contenedor de la cámara
 
                 // Iniciar la lectura del código QR
                 requestAnimationFrame(scanQRCode);
@@ -258,12 +282,13 @@
 
         function stopCamera() {
             const video = document.getElementById('video');
+            const cameraContainer = document.getElementById('camera-container');
             const stream = video.srcObject;
             if (stream) {
                 const tracks = stream.getTracks();
                 tracks.forEach(track => track.stop());
             }
-            video.style.display = 'none'; // Ocultar el video
+            cameraContainer.style.display = 'none'; // Ocultar el contenedor de la cámara
         }
 
         function toggleKeyboard() {
