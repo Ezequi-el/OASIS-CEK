@@ -112,29 +112,14 @@
             width: 100%;
             border-radius: 12px;
         }
-        .keyboard {
-            display: none;
-            margin-top: 20px;
-        }
-        .keyboard button {
-            width: 20%;
-            margin: 2%;
-            padding: 10px;
-            font-size: 16px;
-            cursor: pointer;
-        }
-        .input-display {
-            margin-top: 10px;
-            font-size: 20px;
-            border: 1px solid #ccc;
-            padding: 10px;
-            border-radius: 8px;
-            background-color: #f7f7f7;
-        }
-        .payment-options {
+        .notification {
             display: none;
             margin-top: 10px;
-            text-align: left;
+            padding: 10px;
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            border-radius: 5px;
         }
         table {
             width: 100%;
@@ -220,6 +205,8 @@
             <video id="video" autoplay></video>
         </div>
 
+        <div class="notification" id="notification">Se ha agregado un producto</div>
+
         <table id="product-table" style="display:none;">
             <thead>
                 <tr>
@@ -274,7 +261,7 @@
 
             if (code) {
                 addProduct(code.data); // Agregar el producto escaneado
-                stopCamera(); // Detener la cámara después de escanear
+                showNotification(); // Mostrar notificación de éxito
             } else {
                 requestAnimationFrame(scanQRCode); // Continuar escaneando
             }
@@ -324,6 +311,14 @@
             newRow.innerHTML = `<td>${code}</td><td>Producto ${code}</td>`;
             tableBody.appendChild(newRow);
             document.getElementById('product-table').style.display = 'table';
+        }
+
+        function showNotification() {
+            const notification = document.getElementById('notification');
+            notification.style.display = 'block';
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 3000); // Ocultar notificación después de 3 segundos
         }
 
         function togglePaymentOptions() {
