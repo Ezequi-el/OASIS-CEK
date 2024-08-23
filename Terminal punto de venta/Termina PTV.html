@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Venta - Aplicación Móvil</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -222,12 +223,47 @@
         async function startCamera() {
             const video = document.getElementById('video');
             try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: { exact: "environment" } } // Seleccionar la cámara trasera
+                });
                 video.srcObject = stream;
                 video.style.display = 'block'; // Mostrar el video
+
+                // Iniciar la lectura del código QR
+                requestAnimationFrame(scanQRCode);
             } catch (error) {
                 alert('No se pudo acceder a la cámara: ' + error);
             }
+        }
+
+        function scanQRCode() {
+            const video = document.getElementById('video');
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+            const code = jsQR(imageData.data, canvas.width, canvas.height);
+
+            if (code) {
+                addProduct(code.data); // Agregar el producto escaneado
+                stopCamera(); // Detener la cámara después de escanear
+            } else {
+                requestAnimationFrame(scanQRCode); // Continuar escaneando
+            }
+        }
+
+        function stopCamera() {
+            const video = document.getElementById('video');
+            const stream = video.srcObject;
+            if (stream) {
+                const tracks = stream.getTracks();
+                tracks.forEach(track => track.stop());
+            }
+            video.style.display = 'none'; // Ocultar el video
         }
 
         function toggleKeyboard() {
