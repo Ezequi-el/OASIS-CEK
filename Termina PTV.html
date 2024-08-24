@@ -7,15 +7,105 @@
     <script src="https://cdn.jsdelivr.net/npm/quagga@0.12.1/dist/quagga.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
-        /* ...Estilos existentes... */
-        #keyboard {
-            display: none; /* Inicialmente oculto */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            width: 400px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .menu-item {
+            background-color: #007bff;
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            text-align: center;
+        }
+
+        .menu-item:hover {
+            background-color: #0056b3;
+        }
+
+        .total {
+            font-size: 1.5em;
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .total span {
+            color: #28a745;
+        }
+
+        button {
+            background-color: #28a745;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 1em;
+            margin-top: 20px;
+        }
+
+        button:hover {
+            background-color: #218838;
+        }
+
+        .action-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+
+        .action-button {
+            background-color: #6c757d;
+            width: 48%;
+        }
+
+        .action-button:hover {
+            background-color: #5a6268;
+        }
+
+        .input-display {
+            margin-top: 20px;
+            font-size: 1.2em;
+            text-align: center;
+        }
+
+        .keyboard {
+            display: none;
             grid-template-columns: repeat(3, 1fr);
             gap: 10px;
             margin-top: 20px;
         }
-        /* ...Estilos existentes... */
-        #ventas-recientes {
+
+        .keyboard button {
+            padding: 20px;
+            font-size: 1.2em;
+        }
+
+        .camera-container {
             display: none;
             position: fixed;
             top: 50%;
@@ -28,18 +118,70 @@
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
             z-index: 1000;
         }
+
+        .camera-container video {
+            width: 100%;
+            height: auto;
+        }
+
+        .notification {
+            display: none;
+            background-color: #28a745;
+            color: white;
+            padding: 10px;
+            margin-top: 20px;
+            border-radius: 5px;
+            text-align: center;
+        }
+
+        #productos-table {
+            width: 100%;
+            margin-top: 20px;
+            border-collapse: collapse;
+        }
+
+        #productos-table th, #productos-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        #productos-table th {
+            background-color: #f2f2f2;
+        }
+
+        #ventas-recientes {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            border: 1px solid #ccc;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            width: 80%;
+            max-height: 80%;
+            overflow-y: auto;
+        }
+
         #ventas-recientes table {
             width: 100%;
             border-collapse: collapse;
         }
+
         #ventas-recientes table th, #ventas-recientes table td {
             border: 1px solid #ddd;
             padding: 8px;
             text-align: left;
         }
+
         #ventas-recientes table th {
             background-color: #f2f2f2;
         }
+
         #ventas-recientes button {
             margin-top: 10px;
             padding: 5px 10px;
@@ -81,7 +223,6 @@
         <div id="input-display" class="input-display">Código: <span id="codigo-input"></span></div>
         
         <div id="keyboard" class="keyboard">
-            <!-- Teclado numérico aquí -->
             <button onclick="addDigit(1)">1</button>
             <button onclick="addDigit(2)">2</button>
             <button onclick="addDigit(3)">3</button>
@@ -132,7 +273,6 @@
         </table>
         <button onclick="cerrarVentasRecientes()">Cerrar</button>
     </div>
-
     <script>
         let carrito = JSON.parse(localStorage.getItem('carrito')) || [];
         let total = carrito.reduce((sum, item) => sum + item.precio * item.cantidad, 0);
@@ -203,11 +343,11 @@
             return new Promise((resolve) => {
                 setTimeout(() => {
                     const productos = {
-                        'P001': {codigo: 'P001', nombre: 'Rosa Roja', precio: 5.99},
-                        'P002': {codigo: 'P002', nombre: 'Orquídea Blanca', precio: 15.99},
-                        'P003': {codigo: 'P003', nombre: 'Cactus Pequeño', precio: 3.99},
-                        'P004': {codigo: 'P004', nombre: 'Helecho Boston', precio: 8.99},
-                        'P005': {codigo: 'P005', nombre: 'Lirio Asiático', precio: 6.99}
+                        '001': {codigo: '001', nombre: 'Rosa Roja', precio: 5.99},
+                        '002': {codigo: '002', nombre: 'Orquídea Blanca', precio: 15.99},
+                        '003': {codigo: '003', nombre: 'Cactus Pequeño', precio: 3.99},
+                        '004': {codigo: '004', nombre: 'Helecho Boston', precio: 8.99},
+                        '005': {codigo: '005', nombre: 'Lirio Asiático', precio: 6.99}
                     };
                     resolve(productos[codigo]);
                 }, 300);
