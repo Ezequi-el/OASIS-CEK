@@ -5,115 +5,49 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PTV - Venta</title>
     <script src="https://cdn.jsdelivr.net/npm/quagga@0.12.1/dist/quagga.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
+        /* ...Estilos existentes... */
+        #keyboard {
+            display: none; /* Inicialmente oculto */
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 20px;
         }
-        .container {
+        /* ...Estilos existentes... */
+        #ventas-recientes {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
             background-color: white;
+            border: 1px solid #ccc;
+            padding: 20px;
             border-radius: 10px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-            padding: 20px;
-            width: 80%;
-            max-width: 800px;
+            z-index: 1000;
         }
-        h1 {
-            text-align: center;
-            color: #333;
-        }
-        .menu-item {
-            display: flex;
-            justify-content: space-between;
-            background-color: #007bff;
-            color: white;
-            padding: 10px;
-            border-radius: 5px;
-            margin-bottom: 10px;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
-        .menu-item:hover {
-            background-color: #0056b3;
-        }
-        .payment-options {
-            display: none;
-            background-color: #e9ecef;
-            padding: 10px;
-            border-radius: 5px;
-            margin-bottom: 10px;
-        }
-        .payment-options div {
-            padding: 5px;
-            cursor: pointer;
-        }
-        .payment-options div:hover {
-            background-color: #007bff;
-            color: white;
-        }
-        .total {
-            text-align: right;
-            font-size: 1.5em;
-            margin-bottom: 20px;
-        }
-        button {
+        #ventas-recientes table {
             width: 100%;
-            padding: 10px;
+            border-collapse: collapse;
+        }
+        #ventas-recientes table th, #ventas-recientes table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        #ventas-recientes table th {
+            background-color: #f2f2f2;
+        }
+        #ventas-recientes button {
+            margin-top: 10px;
+            padding: 5px 10px;
             background-color: #28a745;
             color: white;
             border: none;
             border-radius: 5px;
             cursor: pointer;
-            font-size: 1.1em;
-            transition: background-color 0.3s ease;
-        }
-        button:hover {
-            background-color: #218838;
-        }
-        .action-buttons {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 20px;
-        }
-        .action-button {
-            width: 48%;
-            padding: 10px;
-            background-color: #ffc107;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 1.1em;
-            transition: background-color 0.3s ease;
-        }
-        .action-button:hover {
-            background-color: #e0a800;
-        }
-        .input-display, .camera-container, .keyboard, .notification {
-            display: none;
-            margin-top: 20px;
-        }
-        .input-display span {
-            font-weight: bold;
-        }
-        #productos-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-        #productos-table th, #productos-table td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: left;
-        }
-        #productos-table th {
-            background-color: #f2f2f2;
         }
     </style>
 </head>
@@ -141,12 +75,25 @@
         <div class="action-buttons">
             <button class="action-button" onclick="startCamera()">Escanear código de barras</button>
             <button class="action-button" onclick="toggleKeyboard()">Agregar código manualmente</button>
+            <button class="action-button" onclick="verVentasRecientes()">Ver ventas recientes</button>
         </div>
         
         <div id="input-display" class="input-display">Código: <span id="codigo-input"></span></div>
         
         <div id="keyboard" class="keyboard">
             <!-- Teclado numérico aquí -->
+            <button onclick="addDigit(1)">1</button>
+            <button onclick="addDigit(2)">2</button>
+            <button onclick="addDigit(3)">3</button>
+            <button onclick="addDigit(4)">4</button>
+            <button onclick="addDigit(5)">5</button>
+            <button onclick="addDigit(6)">6</button>
+            <button onclick="addDigit(7)">7</button>
+            <button onclick="addDigit(8)">8</button>
+            <button onclick="addDigit(9)">9</button>
+            <button onclick="clearInput()">C</button>
+            <button onclick="addDigit(0)">0</button>
+            <button onclick="confirmInput()">OK</button>
         </div>
         
         <div id="camera-container" class="camera-container">
@@ -168,10 +115,30 @@
             <tbody id="productos-body"></tbody>
         </table>
     </div>
+    
+    <div id="ventas-recientes">
+        <h3>Ventas recientes</h3>
+        <table id="tabla-ventas-recientes">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Cliente</th>
+                    <th>Total</th>
+                    <th>Fecha</th>
+                    <th>Reimprimir</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+        <button onclick="cerrarVentasRecientes()">Cerrar</button>
+    </div>
 
     <script>
         let carrito = JSON.parse(localStorage.getItem('carrito')) || [];
         let total = carrito.reduce((sum, item) => sum + item.precio * item.cantidad, 0);
+        let codigoInput = '';
+        let ventasRecientes = JSON.parse(localStorage.getItem('ventasRecientes')) || [];
+        
         document.getElementById('total-amount').textContent = total.toFixed(2);
 
         function startCamera() {
@@ -179,7 +146,10 @@
                 inputStream: {
                     name: "Live",
                     type: "LiveStream",
-                    target: document.querySelector("#video-preview")
+                    target: document.querySelector("#video-preview"),
+                    constraints: {
+                        facingMode: "environment" // Usa la cámara trasera
+                    }
                 },
                 decoder: {
                     readers: ["ean_reader", "ean_8_reader", "code_128_reader"]
@@ -230,7 +200,7 @@
         }
 
         function obtenerDetallesProducto(codigo) {
-            return new Promise((resolve, reject) => {
+            return new Promise((resolve) => {
                 setTimeout(() => {
                     const productos = {
                         'P001': {codigo: 'P001', nombre: 'Rosa Roja', precio: 5.99},
@@ -239,12 +209,7 @@
                         'P004': {codigo: 'P004', nombre: 'Helecho Boston', precio: 8.99},
                         'P005': {codigo: 'P005', nombre: 'Lirio Asiático', precio: 6.99}
                     };
-                    const producto = productos[codigo];
-                    if (producto) {
-                        resolve(producto);
-                    } else {
-                        reject("Producto no encontrado");
-                    }
+                    resolve(productos[codigo]);
                 }, 300);
             });
         }
@@ -269,21 +234,31 @@
             document.getElementById('total-amount').textContent = total.toFixed(2);
         }
 
-        function showNotification(message) {
-            let notification = document.getElementById('notification');
-            notification.textContent = message;
-            notification.style.display = 'block';
-            setTimeout(() => notification.style.display = 'none', 3000);
+        function toggleKeyboard() {
+            let keyboard = document.getElementById('keyboard');
+            if (keyboard.style.display === 'none' || keyboard.style.display === '') {
+                keyboard.style.display = 'grid';
+            } else {
+                keyboard.style.display = 'none';
+            }
         }
 
-        function togglePaymentOptions() {
-            let options = document.getElementById('payment-options');
-            options.style.display = options.style.display === 'block' ? 'none' : 'block';
+        function addDigit(digit) {
+            codigoInput += digit;
+            document.getElementById('codigo-input').textContent = codigoInput;
         }
 
-        function selectPaymentMethod(method) {
-            document.getElementById('payment-method').textContent = method;
-            document.getElementById('payment-options').style.display = 'none';
+        function clearInput() {
+            codigoInput = '';
+            document.getElementById('codigo-input').textContent = codigoInput;
+        }
+
+        function confirmInput() {
+            if (codigoInput) {
+                agregarProducto(codigoInput);
+                clearInput();
+                toggleKeyboard(); // Ocultar el teclado después de confirmar
+            }
         }
 
         function finalizarVenta() {
@@ -291,37 +266,83 @@
                 showNotification("No hay productos en el carrito");
                 return;
             }
-
-            if (!confirm("¿Deseas confirmar la venta?")) {
-                return;
-            }
-
-            // Aquí se procesaría la venta y se generaría el ticket
-            localStorage.removeItem('carrito');
+            let venta = {
+                id: new Date().getTime().toString(),
+                cliente: document.getElementById('cliente-seleccionado').textContent,
+                total: total.toFixed(2),
+                fecha: new Date().toLocaleString(),
+                productos: [...carrito]
+            };
+            ventasRecientes.push(venta);
+            localStorage.setItem('ventasRecientes', JSON.stringify(ventasRecientes));
+            imprimirTicket(venta);
             carrito = [];
+            localStorage.removeItem('carrito');
             actualizarTablaProductos();
             calcularTotal();
-            showNotification("Venta finalizada exitosamente");
+            showNotification("Venta finalizada con éxito");
         }
 
-        function seleccionarCliente() {
-            let cliente = prompt("Ingresa el nombre del cliente:");
-            if (cliente) {
-                document.getElementById('cliente-seleccionado').textContent = cliente;
+        function imprimirTicket(venta) {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            doc.text("Ticket de Venta", 10, 10);
+            doc.text(`ID de Compra: ${venta.id}`, 10, 20);
+            doc.text(`Fecha: ${venta.fecha}`, 10, 30);
+            doc.text(`Cliente: ${venta.cliente}`, 10, 40);
+            
+            let startY = 50;
+            venta.productos.forEach((item, index) => {
+                doc.text(`${index + 1}. ${item.nombre} - Cantidad: ${item.cantidad} - Precio: $${(item.precio * item.cantidad).toFixed(2)}`, 10, startY);
+                startY += 10;
+            });
+            
+            doc.text(`Total: $${venta.total}`, 10, startY + 10);
+
+            doc.save(`ticket_${venta.id}.pdf`);
+        }
+
+        function verVentasRecientes() {
+            let tablaVentas = document.querySelector("#tabla-ventas-recientes tbody");
+            tablaVentas.innerHTML = '';
+
+            ventasRecientes.forEach(venta => {
+                let tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${venta.id}</td>
+                    <td>${venta.cliente}</td>
+                    <td>$${venta.total}</td>
+                    <td>${venta.fecha}</td>
+                    <td><button onclick="reimprimirTicket('${venta.id}')">Reimprimir</button></td>
+                `;
+                tablaVentas.appendChild(tr);
+            });
+
+            document.getElementById('ventas-recientes').style.display = 'block';
+        }
+
+        function cerrarVentasRecientes() {
+            document.getElementById('ventas-recientes').style.display = 'none';
+        }
+
+        function reimprimirTicket(id) {
+            let venta = ventasRecientes.find(v => v.id === id);
+            if (venta) {
+                imprimirTicket(venta);
+            } else {
+                showNotification("Venta no encontrada");
             }
         }
 
-        function showProducts() {
-            document.getElementById('productos-table').style.display = 'block';
+        function showNotification(message) {
+            let notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.style.display = 'block';
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 3000);
         }
-
-        function toggleKeyboard() {
-            let keyboard = document.getElementById('keyboard');
-            keyboard.style.display = keyboard.style.display === 'block' ? 'none' : 'block';
-        }
-
-        // Inicializar la tabla de productos al cargar la página
-        actualizarTablaProductos();
     </script>
 </body>
 </html>
