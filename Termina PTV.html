@@ -141,6 +141,7 @@
         .camera-container video {
             width: 100%;
             height: auto;
+            display: block; /* Asegura que el video se muestre */
         }
 
         .notification {
@@ -290,27 +291,31 @@
             </thead>
             <tbody id="ventas-recientes-body"></tbody>
         </table>
-        <button onclick="printRecibo()">Reimprimir recibo</button>
-        <button onclick="closeVentasRecientes()">Cerrar</button>
+        <button onclick="cerrarVentasRecientes()">Cerrar</button>
     </div>
 
     <script>
-        let carrito = JSON.parse(localStorage.getItem('carrito')) || [];
-        let ventasRecientes = JSON.parse(localStorage.getItem('ventasRecientes')) || [];
-        let total = carrito.reduce((sum, item) => sum + item.precio * item.cantidad, 0);
-        let codigoInput = '';
-        let currentVentaId = 1;  // Asignar un ID único para cada venta
-
-        document.getElementById('total-amount').textContent = total.toFixed(2);
+        function showNotification(message) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.style.display = 'block';
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 3000);
+        }
 
         function startCamera() {
+            const cameraContainer = document.getElementById('camera-container');
+            cameraContainer.style.display = 'block';
             Quagga.init({
                 inputStream: {
                     name: "Live",
                     type: "LiveStream",
                     target: document.querySelector("#video-preview"),
                     constraints: {
-                        facingMode: "environment" // Usa la cámara trasera
+                        width: 640, // Ajusta el ancho según sea necesario
+                        height: 480, // Ajusta la altura según sea necesario
+                        facingMode: "environment" // Cambia a "user" para usar la cámara frontal
                     }
                 },
                 decoder: {
@@ -326,212 +331,75 @@
             });
 
             Quagga.onDetected(function(result) {
-                let code = result.codeResult.code;
-                agregarProducto(code);
-                showNotification("Se ha escaneado el código: " + code);
+                const code = result.codeResult.code;
+                showNotification("Código detectado: " + code);
+                stopCamera();
+                // Aquí puedes manejar el código detectado (por ejemplo, agregarlo a la lista de productos)
             });
-
-            document.getElementById('camera-container').style.display = 'block';
         }
 
         function stopCamera() {
             Quagga.stop();
-            document.getElementById('camera-container').style.display = 'none';
+            const cameraContainer = document.getElementById('camera-container');
+            cameraContainer.style.display = 'none';
         }
 
-        function agregarProducto(codigo) {
-            obtenerDetallesProducto(codigo).then(producto => {
-                if (producto) {
-                    let itemExistente = carrito.find(item => item.codigo === codigo);
-                    if (itemExistente) {
-                        itemExistente.cantidad++;
-                    } else {
-                        carrito.push({...producto, cantidad: 1});
-                    }
-                    actualizarTablaProductos();
-                    calcularTotal();
-                    localStorage.setItem('carrito', JSON.stringify(carrito));
-                    showNotification("Se ha agregado el producto: " + producto.nombre);
-                } else {
-                    showNotification("Producto no encontrado");
-                }
-            }).catch(err => {
-                console.error(err);
-                showNotification("Error al obtener los detalles del producto");
-            });
-        }
-
-        function obtenerDetallesProducto(codigo) {
-            return new Promise((resolve) => {
-                setTimeout(() => {
-                    const productos = {
-                        '1': {codigo: '1', nombre: 'Rosa Roja', precio: 5.99},
-                        '2': {codigo: '2', nombre: 'Orquídea Blanca', precio: 15.99},
-                        '3': {codigo: '3', nombre: 'Cactus Pequeño', precio: 3.99},
-                        '4': {codigo: '4', nombre: 'Helecho Boston', precio: 8.99},
-                        '5': {codigo: '5', nombre: 'Lirio Asiático', precio: 6.99}
-                    };
-                    resolve(productos[codigo]);
-                }, 300);
-            });
-        }
-
-        function actualizarTablaProductos() {
-            let tbody = document.getElementById('productos-body');
-            tbody.innerHTML = '';
-            carrito.forEach(item => {
-                let tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>${item.codigo}</td>
-                    <td>${item.nombre}</td>
-                    <td>${item.cantidad}</td>
-                    <td>$${(item.precio * item.cantidad).toFixed(2)}</td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
-
-        function calcularTotal() {
-            total = carrito.reduce((sum, item) => sum + item.precio * item.cantidad, 0);
-            document.getElementById('total-amount').textContent = total.toFixed(2);
-        }
-
-        function showNotification(message) {
-            let notification = document.getElementById('notification');
-            notification.textContent = message;
-            notification.style.display = 'block';
-            setTimeout(() => notification.style.display = 'none', 3000);
+        function toggleKeyboard() {
+            const keyboard = document.getElementById('keyboard');
+            keyboard.style.display = keyboard.style.display === 'grid' ? 'none' : 'grid';
         }
 
         function togglePaymentOptions() {
-            let options = document.getElementById('payment-options');
-            options.style.display = options.style.display === 'block' ? 'none' : 'block';
+            const paymentOptions = document.getElementById('payment-options');
+            paymentOptions.style.display = paymentOptions.style.display === 'block' ? 'none' : 'block';
+        }
+
+        function addDigit(digit) {
+            const codigoInput = document.getElementById('codigo-input');
+            codigoInput.textContent += digit;
+        }
+
+        function clearInput() {
+            const codigoInput = document.getElementById('codigo-input');
+            codigoInput.textContent = '';
+        }
+
+        function confirmInput() {
+            const codigoInput = document.getElementById('codigo-input').textContent;
+            showNotification("Código ingresado: " + codigoInput);
+            // Aquí puedes manejar el código ingresado manualmente (por ejemplo, agregarlo a la lista de productos)
+            clearInput();
         }
 
         function selectPaymentMethod(method) {
             document.getElementById('payment-method').textContent = method;
-            document.getElementById('payment-options').style.display = 'none';
-        }
-
-        function finalizarVenta() {
-            if (carrito.length === 0) {
-                showNotification("No hay productos en el carrito");
-                return;
-            }
-
-            if (!confirm("¿Deseas confirmar la venta?")) {
-                return;
-            }
-
-            const cliente = document.getElementById('cliente-seleccionado').textContent;
-            const venta = {
-                id: currentVentaId++,
-                fecha: new Date().toLocaleDateString(),
-                hora: new Date().toLocaleTimeString(),
-                cliente: cliente,
-                total: total.toFixed(2),
-                productos: carrito
-            };
-
-            // Guardar la venta en ventas recientes
-            ventasRecientes.push(venta);
-            localStorage.setItem('ventasRecientes', JSON.stringify(ventasRecientes));
-
-            // Imprimir recibo en PDF
-            imprimirRecibo(venta);
-
-            // Limpiar carrito
-            localStorage.removeItem('carrito');
-            carrito = [];
-            actualizarTablaProductos();
-            calcularTotal();
-            showNotification("Venta finalizada exitosamente");
-        }
-
-        function imprimirRecibo(venta) {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-            doc.text(`ID de Venta: ${venta.id}`, 10, 10);
-            doc.text(`Fecha: ${venta.fecha}`, 10, 20);
-            doc.text(`Hora: ${venta.hora}`, 10, 30);
-            doc.text(`Cliente: ${venta.cliente}`, 10, 40);
-            doc.text(`Total: $${venta.total}`, 10, 50);
-            doc.text('Productos:', 10, 60);
-
-            venta.productos.forEach((producto, index) => {
-                doc.text(`${index + 1}. ${producto.nombre} - ${producto.cantidad} x $${producto.precio.toFixed(2)} = $${(producto.cantidad * producto.precio).toFixed(2)}`, 10, 70 + (index * 10));
-            });
-
-            doc.save(`venta_${venta.id}.pdf`);
+            togglePaymentOptions();
         }
 
         function seleccionarCliente() {
-            let cliente = prompt("Ingresa el nombre del cliente:");
-            if (cliente) {
-                document.getElementById('cliente-seleccionado').textContent = cliente;
-            }
+            // Aquí puedes implementar la lógica para seleccionar un cliente
+            showNotification("Función para seleccionar cliente aún no implementada");
         }
 
         function showProducts() {
-            document.getElementById('productos-table').style.display = 'block';
+            // Aquí puedes mostrar la lista de productos escaneados
+            showNotification("Función para mostrar productos aún no implementada");
         }
 
-        function toggleKeyboard() {
-            let keyboard = document.getElementById('keyboard');
-            keyboard.style.display = keyboard.style.display === 'grid' ? 'none' : 'grid';
-            document.getElementById('input-display').style.display = keyboard.style.display === 'grid' ? 'block' : 'none';
-        }
-
-        function addDigit(digit) {
-            codigoInput += digit;
-            document.getElementById('codigo-input').textContent = codigoInput;
-        }
-
-        function clearInput() {
-            codigoInput = '';
-            document.getElementById('codigo-input').textContent = codigoInput;
-        }
-
-        function confirmInput() {
-            if (codigoInput !== '') {
-                agregarProducto(codigoInput);
-                clearInput();
-                toggleKeyboard();
-            } else {
-                showNotification("Ingrese un código válido");
-            }
+        function finalizarVenta() {
+            // Aquí puedes implementar la lógica para finalizar la venta
+            showNotification("Función para finalizar venta aún no implementada");
         }
 
         function verVentasRecientes() {
-            let ventasBody = document.getElementById('ventas-recientes-body');
-            ventasBody.innerHTML = '';
-            ventasRecientes.forEach(venta => {
-                let tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>${venta.id}</td>
-                    <td>${venta.fecha}</td>
-                    <td>${venta.cliente}</td>
-                    <td>$${venta.total}</td>
-                    <td><button onclick="reimprimirRecibo(${venta.id})">Reimprimir</button></td>
-                `;
-                ventasBody.appendChild(tr);
-            });
-            document.getElementById('ventas-recientes').style.display = 'block';
+            const ventasRecientes = document.getElementById('ventas-recientes');
+            ventasRecientes.style.display = 'block';
         }
 
-        function reimprimirRecibo(id) {
-            const venta = ventasRecientes.find(v => v.id === id);
-            if (venta) {
-                imprimirRecibo(venta);
-            }
+        function cerrarVentasRecientes() {
+            const ventasRecientes = document.getElementById('ventas-recientes');
+            ventasRecientes.style.display = 'none';
         }
-
-        function closeVentasRecientes() {
-            document.getElementById('ventas-recientes').style.display = 'none';
-        }
-
-        // Inicializar la tabla de productos al cargar la página
-        actualizarTablaProductos();
     </script>
 </body>
 </html>
