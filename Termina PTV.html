@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PTV - Venta</title>
+    <script src="https://cdn.jsdelivr.net/npm/quagga@0.12.1/dist/quagga.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            padding: 20px;
+            width: 80%;
+            max-width: 800px;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        .menu-item {
+            display: flex;
+            justify-content: space-between;
+            background-color: #007bff;
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .menu-item:hover {
+            background-color: #0056b3;
+        }
+        .payment-options {
+            display: none;
+            background-color: #e9ecef;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+        .payment-options div {
+            padding: 5px;
+            cursor: pointer;
+        }
+        .payment-options div:hover {
+            background-color: #007bff;
+            color: white;
+        }
+        .total {
+            text-align: right;
+            font-size: 1.5em;
+            margin-bottom: 20px;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1.1em;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        .action-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        .action-button {
+            width: 48%;
+            padding: 10px;
+            background-color: #ffc107;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1.1em;
+            transition: background-color 0.3s ease;
+        }
+        .action-button:hover {
+            background-color: #e0a800;
+        }
+        .input-display, .camera-container, .keyboard, .notification {
+            display: none;
+            margin-top: 20px;
+        }
+        .input-display span {
+            font-weight: bold;
+        }
+        #productos-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        #productos-table th, #productos-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        #productos-table th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>VENTA</h1>
+        
+        <div class="menu-item" onclick="seleccionarCliente()">Cliente: <span id="cliente-seleccionado">Seleccionar cliente</span> ▶</div>
+        
+        <div class="menu-item" onclick="showProducts()">Productos: Ver productos escaneados ▶</div>
+        
+        <div class="menu-item" onclick="togglePaymentOptions()">
+            Método de pago: <span id="payment-method">Seleccionar método</span> ▶
+        </div>
+        
+        <div id="payment-options" class="payment-options">
+            <div onclick="selectPaymentMethod('Efectivo')">Efectivo</div>
+            <div onclick="selectPaymentMethod('Transferencia')">Transferencia</div>
+        </div>
+        
+        <div class="total">Total: $<span id="total-amount">0.00</span></div>
+        
+        <button onclick="finalizarVenta()">Finalizar venta</button>
+        
+        <div class="action-buttons">
+            <button class="action-button" onclick="startCamera()">Escanear código de barras</button>
+            <button class="action-button" onclick="toggleKeyboard()">Agregar código manualmente</button>
+        </div>
+        
+        <div id="input-display" class="input-display">Código: <span id="codigo-input"></span></div>
+        
+        <div id="keyboard" class="keyboard">
+            <!-- Teclado numérico aquí -->
+        </div>
+        
+        <div id="camera-container" class="camera-container">
+            <video id="video-preview"></video>
+            <button onclick="stopCamera()">Cerrar Cámara</button>
+        </div>
+        
+        <div id="notification" class="notification"></div>
+        
+        <table id="productos-table">
+            <thead>
+                <tr>
+                    <th>Código</th>
+                    <th>Descripción</th>
+                    <th>Cantidad</th>
+                    <th>Precio</th>
+                </tr>
+            </thead>
+            <tbody id="productos-body"></tbody>
+        </table>
+    </div>
+
+    <script>
+        let carrito = JSON.parse(localStorage.getItem('carrito')) || [];
+        let total = carrito.reduce((sum, item) => sum + item.precio * item.cantidad, 0);
+        document.getElementById('total-amount').textContent = total.toFixed(2);
+
+        function startCamera() {
+            Quagga.init({
+                inputStream: {
+                    name: "Live",
+                    type: "LiveStream",
+                    target: document.querySelector("#video-preview")
+                },
+                decoder: {
+                    readers: ["ean_reader", "ean_8_reader", "code_128_reader"]
+                }
+            }, function(err) {
+                if (err) {
+                    console.error(err);
+                    showNotification("Error al iniciar la cámara");
+                    return;
+                }
+                Quagga.start();
+            });
+
+            Quagga.onDetected(function(result) {
+                let code = result.codeResult.code;
+                agregarProducto(code);
+                showNotification("Se ha escaneado el código: " + code);
+            });
+
+            document.getElementById('camera-container').style.display = 'block';
+        }
+
+        function stopCamera() {
+            Quagga.stop();
+            document.getElementById('camera-container').style.display = 'none';
+        }
+
+        function agregarProducto(codigo) {
+            obtenerDetallesProducto(codigo).then(producto => {
+                if (producto) {
+                    let itemExistente = carrito.find(item => item.codigo === codigo);
+                    if (itemExistente) {
+                        itemExistente.cantidad++;
+                    } else {
+                        carrito.push({...producto, cantidad: 1});
+                    }
+                    actualizarTablaProductos();
+                    calcularTotal();
+                    localStorage.setItem('carrito', JSON.stringify(carrito));
+                    showNotification("Se ha agregado el producto: " + producto.nombre);
+                } else {
+                    showNotification("Producto no encontrado");
+                }
+            }).catch(err => {
+                console.error(err);
+                showNotification("Error al obtener los detalles del producto");
+            });
+        }
+
+        function obtenerDetallesProducto(codigo) {
+            return new Promise((resolve, reject) => {
+                setTimeout(() => {
+                    const productos = {
+                        'P001': {codigo: 'P001', nombre: 'Rosa Roja', precio: 5.99},
+                        'P002': {codigo: 'P002', nombre: 'Orquídea Blanca', precio: 15.99},
+                        'P003': {codigo: 'P003', nombre: 'Cactus Pequeño', precio: 3.99},
+                        'P004': {codigo: 'P004', nombre: 'Helecho Boston', precio: 8.99},
+                        'P005': {codigo: 'P005', nombre: 'Lirio Asiático', precio: 6.99}
+                    };
+                    const producto = productos[codigo];
+                    if (producto) {
+                        resolve(producto);
+                    } else {
+                        reject("Producto no encontrado");
+                    }
+                }, 300);
+            });
+        }
+
+        function actualizarTablaProductos() {
+            let tbody = document.getElementById('productos-body');
+            tbody.innerHTML = '';
+            carrito.forEach(item => {
+                let tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${item.codigo}</td>
+                    <td>${item.nombre}</td>
+                    <td>${item.cantidad}</td>
+                    <td>$${(item.precio * item.cantidad).toFixed(2)}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function calcularTotal() {
+            total = carrito.reduce((sum, item) => sum + item.precio * item.cantidad, 0);
+            document.getElementById('total-amount').textContent = total.toFixed(2);
+        }
+
+        function showNotification(message) {
+            let notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.style.display = 'block';
+            setTimeout(() => notification.style.display = 'none', 3000);
+        }
+
+        function togglePaymentOptions() {
+            let options = document.getElementById('payment-options');
+            options.style.display = options.style.display === 'block' ? 'none' : 'block';
+        }
+
+        function selectPaymentMethod(method) {
+            document.getElementById('payment-method').textContent = method;
+            document.getElementById('payment-options').style.display = 'none';
+        }
+
+        function finalizarVenta() {
+            if (carrito.length === 0) {
+                showNotification("No hay productos en el carrito");
+                return;
+            }
+
+            if (!confirm("¿Deseas confirmar la venta?")) {
+                return;
+            }
+
+            // Aquí se procesaría la venta y se generaría el ticket
+            localStorage.removeItem('carrito');
+            carrito = [];
+            actualizarTablaProductos();
+            calcularTotal();
+            showNotification("Venta finalizada exitosamente");
+        }
+
+        function seleccionarCliente() {
+            let cliente = prompt("Ingresa el nombre del cliente:");
+            if (cliente) {
+                document.getElementById('cliente-seleccionado').textContent = cliente;
+            }
+        }
+
+        function showProducts() {
+            document.getElementById('productos-table').style.display = 'block';
+        }
+
+        function toggleKeyboard() {
+            let keyboard = document.getElementById('keyboard');
+            keyboard.style.display = keyboard.style.display === 'block' ? 'none' : 'block';
+        }
+
+        // Inicializar la tabla de productos al cargar la página
+        actualizarTablaProductos();
+    </script>
+</body>
+</html>
