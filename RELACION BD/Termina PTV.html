@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Venta - Aplicación Móvil</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f9f9f9;
+        }
+        .container {
+            max-width: 400px;
+            margin: auto;
+            padding: 20px;
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            opacity: 0;
+            transform: translateY(-20px);
+            animation: fadeIn 0.5s forwards;
+        }
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        .menu-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #e7f3fe;
+            border-radius: 8px;
+            margin: 10px 0;
+            padding: 15px;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.3s;
+        }
+        .menu-item:hover {
+            background-color: #d4e4ff;
+            transform: scale(1.02);
+        }
+        .total {
+            font-size: 20px;
+            margin: 20px 0;
+        }
+        .finalizar {
+            background-color: #4CAF50;
+            color: white;
+            padding: 15px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 18px;
+            transition: background-color 0.3s;
+        }
+        .finalizar:hover {
+            background-color: #45a049;
+        }
+        .action-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        .action-button {
+            background-color: #e7f3fe;
+            padding: 10px;
+            border-radius: 8px;
+            flex: 1;
+            margin: 0 5px;
+            text-align: center;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.3s;
+        }
+        .action-button:hover {
+            background-color: #d4e4ff;
+            transform: scale(1.02);
+        }
+        video {
+            display: none;
+            width: 100%;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        .keyboard {
+            display: none;
+            margin-top: 20px;
+        }
+        .keyboard button {
+            width: 20%;
+            margin: 2%;
+            padding: 10px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .input-display {
+            margin-top: 10px;
+            font-size: 20px;
+            border: 1px solid #ccc;
+            padding: 10px;
+            border-radius: 8px;
+            background-color: #f7f7f7;
+        }
+        .payment-options {
+            display: none;
+            margin-top: 10px;
+            text-align: left;
+        }
+        table {
+            width: 100%;
+            margin-top: 20px;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>VENTA</h1>
+        
+        <a href="pagina_cliente.html" class="menu-item">
+            <span>Cliente</span>
+            <span>Seleccionar cliente</span>
+            <span>▶</span>
+        </a>
+        
+        <div class="menu-item" onclick="showProducts()">
+            <span>Productos</span>
+            <span>Ver productos escaneados</span>
+            <span>▶</span>
+        </div>
+        
+        <div class="menu-item" onclick="togglePaymentOptions()">
+            <span>Método de pago</span>
+            <span id="payment-method">Seleccionar método</span>
+            <span>▶</span>
+        </div>
+        <div class="payment-options" id="payment-options">
+            <label><input type="radio" name="payment" value="Efectivo" onclick="selectPayment('Efectivo')"> Efectivo</label><br>
+            <label><input type="radio" name="payment" value="Transferencia" onclick="selectPayment('Transferencia')"> Transferencia</label>
+        </div>
+
+        <div class="total">Total: $0.00</div>
+
+        <button class="finalizar" onclick="finalizarVenta()">Finalizar venta</button>
+
+        <div class="action-buttons">
+            <div class="action-button" onclick="startCamera()">
+                Escanear código de barras
+            </div>
+            <div class="action-button" onclick="toggleKeyboard()">
+                Agregar código manualmente
+            </div>
+        </div>
+
+        <div class="input-display" id="input-display">Código: </div>
+
+        <div class="keyboard" id="keyboard">
+            <div>
+                <button onclick="addToCode('1')">1</button>
+                <button onclick="addToCode('2')">2</button>
+                <button onclick="addToCode('3')">3</button>
+            </div>
+            <div>
+                <button onclick="addToCode('4')">4</button>
+                <button onclick="addToCode('5')">5</button>
+                <button onclick="addToCode('6')">6</button>
+            </div>
+            <div>
+                <button onclick="addToCode('7')">7</button>
+                <button onclick="addToCode('8')">8</button>
+                <button onclick="addToCode('9')">9</button>
+            </div>
+            <div>
+                <button onclick="addToCode('0')">0</button>
+                <button onclick="clearCode()">Limpiar</button>
+                <button onclick="submitCode()">Enviar</button>
+            </div>
+        </div>
+
+        <video id="video" autoplay></video>
+
+        <table id="product-table" style="display:none;">
+            <thead>
+                <tr>
+                    <th>Código</th>
+                    <th>Descripción</th>
+                </tr>
+            </thead>
+            <tbody id="product-body"></tbody>
+        </table>
+    </div>
+
+    <script>
+        let scannedProducts = [];
+        let currentCode = '';
+
+        function showAlert(action) {
+            alert(`Acción: ${action}`);
+        }
+
+        function finalizarVenta() {
+            alert('Venta finalizada. ¡Gracias por su compra!');
+        }
+
+        async function startCamera() {
+            const video = document.getElementById('video');
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                video.srcObject = stream;
+                video.style.display = 'block'; // Mostrar el video
+            } catch (error) {
+                alert('No se pudo acceder a la cámara: ' + error);
+            }
+        }
+
+        function toggleKeyboard() {
+            const keyboard = document.getElementById('keyboard');
+            keyboard.style.display = keyboard.style.display === 'block' ? 'none' : 'block';
+        }
+
+        function addToCode(number) {
+            currentCode += number;
+            updateInputDisplay();
+        }
+
+        function clearCode() {
+            currentCode = '';
+            updateInputDisplay();
+        }
+
+        function submitCode() {
+            if (currentCode) {
+                addProduct(currentCode);
+                currentCode = '';
+                updateInputDisplay();
+            }
+        }
+
+        function updateInputDisplay() {
+            document.getElementById('input-display').innerText = `Código: ${currentCode}`;
+        }
+
+        function addProduct(code) {
+            const tableBody = document.getElementById('product-body');
+            const newRow = document.createElement('tr');
+            newRow.innerHTML = `<td>${code}</td><td>Producto ${code}</td>`;
+            tableBody.appendChild(newRow);
+            document.getElementById('product-table').style.display = 'table';
+        }
+
+        function togglePaymentOptions() {
+            const paymentOptions = document.getElementById('payment-options');
+            paymentOptions.style.display = paymentOptions.style.display === 'block' ? 'none' : 'block';
+        }
+
+        function selectPayment(method) {
+            document.getElementById('payment-method').innerText = method;
+            document.getElementById('payment-options').style.display = 'none';
+        }
+
+        function showProducts() {
+            document.getElementById('product-table').style.display = 'table';
+        }
+    </script>
+</body>
+</html>

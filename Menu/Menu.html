@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menú - Aplicación Móvil</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f9f9f9;
+        }
+        .container {
+            max-width: 400px;
+            margin: auto;
+            padding: 20px;
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        .menu-item {
+            background-color: #e7f3fe;
+            border-radius: 8px;
+            margin: 10px 0;
+            padding: 15px;
+            transition: background-color 0.3s, transform 0.3s;
+            cursor: pointer;
+        }
+        .menu-item:hover {
+            background-color: #d4e4ff;
+            transform: scale(1.05);
+        }
+        .menu-item h2 {
+            font-size: 18px;
+            margin: 0;
+        }
+        .menu-item p {
+            font-size: 14px;
+            margin: 5px 0 0;
+        }
+        .message {
+            margin-top: 20px;
+            font-size: 16px;
+            color: #333;
+            opacity: 0;
+            transition: opacity 0.5s;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Menú</h1>
+        <p>¿Qué te gustaría hacer hoy?</p>
+        
+        <div class="menu-item" onclick="showMessage('Punto de Venta seleccionado')">
+            <h2>Punto de Venta</h2>
+            <p>Acepta pagos, administra tu tienda y más</p>
+        </div>
+        
+        <div class="menu-item" onclick="showMessage('Inventario seleccionado')">
+            <h2>Inventario</h2>
+            <p>Agregue o elimine productos, ajuste los niveles de existencias y más</p>
+        </div>
+        
+        <div class="menu-item" onclick="showMessage('Clientes seleccionado')">
+            <h2>Clientes</h2>
+            <p>Administre perfiles de clientes, cree notas y más</p>
+        </div>
+        
+        <div class="menu-item" onclick="showMessage('Reportes seleccionado')">
+            <h2>Reportes</h2>
+            <p>Administre perfiles de clientes, cree notas y más</p>
+        </div>
+        
+        <div class="menu-item" onclick="showMessage('Tareas seleccionado')">
+            <h2>Tareas</h2>
+            <p>Vea y administre sus tareas y pendientes diarios</p>
+        </div>
+
+        <div class="message" id="message"></div>
+    </div>
+
+    <script>
+        function showMessage(text) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.textContent = text;
+            messageDiv.style.opacity = 1; // Hacer visible el mensaje
+
+            // Ocultar el mensaje después de 2 segundos
+            setTimeout(() => {
+                messageDiv.style.opacity = 0;
+            }, 2000);
+        }
+    </script>
+</body>
+</html>

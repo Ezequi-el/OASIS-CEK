@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestor de Tareas</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        header {
+            margin-bottom: 20px;
+        }
+        h1 {
+            font-size: 24px;
+            font-weight: 500;
+        }
+        .task-input {
+            width: 100%;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+        }
+        .task-input:focus {
+            outline: none;
+            border-color: #4CAF50;
+            box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+        }
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-primary {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: #45a049;
+        }
+        .btn-secondary {
+            background-color: #f1f1f1;
+            color: #333;
+        }
+        .btn-secondary:hover {
+            background-color: #e0e0e0;
+        }
+        .task-details {
+            margin-top: 20px;
+        }
+        .task-details input, .task-details select {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+        .task-details input:focus, .task-details select:focus {
+            outline: none;
+            border-color: #4CAF50;
+            box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+        }
+        .time-remaining {
+            font-size: 12px;
+            color: #999;
+        }
+        .completed {
+            text-decoration: line-through;
+            color: #bbb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>TAREAS</h1>
+        </header>
+        
+        <div class="task-input-container">
+            <input type="text" class="task-input" id="taskInput" placeholder="Nombre de la actividad">
+            <input type="datetime-local" class="task-input" id="taskDateTime">
+        </div>
+        
+        <button class="btn btn-primary" id="addTaskBtn">Agregar/Actualizar Actividad</button>
+        
+        <div class="task-details fade-in" id="taskDetails" style="display: none;">
+            <h3>Actividades Programadas</h3>
+            <ul id="taskList"></ul>
+        </div>
+    </div>
+
+    <script>
+        const taskInput = document.getElementById('taskInput');
+        const taskDateTime = document.getElementById('taskDateTime');
+        const addTaskBtn = document.getElementById('addTaskBtn');
+        const taskDetails = document.getElementById('taskDetails');
+        const taskList = document.getElementById('taskList');
+
+        let editingIndex = null;
+
+        addTaskBtn.addEventListener('click', () => {
+            const activity = taskInput.value.trim();
+            const dateTime = taskDateTime.value;
+
+            if (activity && dateTime) {
+                if (editingIndex !== null) {
+                    // Editar tarea existente
+                    const listItem = taskList.children[editingIndex];
+                    listItem.querySelector('.task-name').textContent = activity;
+                    listItem.querySelector('.task-time').textContent = new Date(dateTime).toLocaleString();
+                    listItem.querySelector('.time-remaining').textContent = getTimeRemaining(dateTime);
+                    editingIndex = null; // Reiniciar índice de edición
+                } else {
+                    // Agregar nueva tarea
+                    const listItem = document.createElement('li');
+                    listItem.innerHTML = `
+                        <span class="task-name">${activity}</span> - <span class="task-time">${new Date(dateTime).toLocaleString()}</span>
+                        <span class="time-remaining">${getTimeRemaining(dateTime)}</span>
+                        <button class="btn btn-secondary complete-btn">✔️</button>
+                        <button class="btn btn-secondary edit-btn">✏️</button>
+                    `;
+                    taskList.appendChild(listItem);
+                    taskDetails.style.display = 'block';
+
+                    // Agregar event listeners para los botones de completar y editar
+                    listItem.querySelector('.complete-btn').addEventListener('click', () => {
+                        listItem.querySelector('.task-name').classList.toggle('completed');
+                    });
+
+                    listItem.querySelector('.edit-btn').addEventListener('click', () => {
+                        taskInput.value = activity;
+                        taskDateTime.value = dateTime;
+                        editingIndex = Array.from(taskList.children).indexOf(listItem);
+                    });
+                }
+                taskInput.value = '';
+                taskDateTime.value = '';
+            } else {
+                alert("Por favor, completa todos los campos.");
+            }
+        });
+
+        function getTimeRemaining(dateTime) {
+            const now = new Date();
+            const eventTime = new Date(dateTime);
+            const remainingTime = eventTime - now;
+
+            if (remainingTime < 0) return "Actividad ya pasada";
+
+            const days = Math.floor(remainingTime / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((remainingTime % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((remainingTime % (1000 * 60 * 60)) / (1000 * 60));
+            return `Faltan ${days}d ${hours}h ${minutes}m`;
+        }
+    </script>
+</body>
+</html>

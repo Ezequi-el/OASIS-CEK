@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generador de Códigos QR</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: #f4f4f4;
+        }
+        input {
+            padding: 10px;
+            width: 200px;
+            margin-bottom: 10px;
+        }
+        button {
+            padding: 10px 15px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        img {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Generador de Códigos QR</h1>
+    <input type="number" id="inputNumber" placeholder="Ingresa un número" required>
+    <button id="generateBtn">Generar Código QR</button>
+    <img id="qrCode" src="" alt="Código QR" style="display:none;">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-qrcode/1.0/jquery.qrcode.min.js"></script>
+    <script>
+        $('#generateBtn').click(function() {
+            const number = $('#inputNumber').val();
+            if (number) {
+                $('#qrCode').attr('src', 'https://api.qrserver.com/v1/create-qr-code/?data=' + number + '&size=200x200').show();
+                downloadImage();
+            } else {
+                alert('Por favor, ingresa un número.');
+            }
+        });
+
+        function downloadImage() {
+            const qrCodeImg = document.getElementById('qrCode');
+            const link = document.createElement('a');
+            link.href = qrCodeImg.src;
+            link.download = 'codigo_qr.jpg';
+            link.click();
+        }
+    </script>
+</body>
+</html>
