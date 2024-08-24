@@ -365,11 +365,11 @@
             return new Promise((resolve) => {
                 setTimeout(() => {
                     const productos = {
-                        '1': {codigo: '1', nombre: 'Rosa Roja', precio: 5.99},
-                        '2': {codigo: '2', nombre: 'Orquídea Blanca', precio: 15.99},
-                        '3': {codigo: '3', nombre: 'Cactus Pequeño', precio: 3.99},
-                        '4': {codigo: '4', nombre: 'Helecho Boston', precio: 8.99},
-                        '5': {codigo: '5', nombre: 'Lirio Asiático', precio: 6.99}
+                        'P001': {codigo: 'P001', nombre: 'Rosa Roja', precio: 5.99},
+                        'P002': {codigo: 'P002', nombre: 'Orquídea Blanca', precio: 15.99},
+                        'P003': {codigo: 'P003', nombre: 'Cactus Pequeño', precio: 3.99},
+                        'P004': {codigo: 'P004', nombre: 'Helecho Boston', precio: 8.99},
+                        'P005': {codigo: 'P005', nombre: 'Lirio Asiático', precio: 6.99}
                     };
                     resolve(productos[codigo]);
                 }, 300);
@@ -381,12 +381,12 @@
             tbody.innerHTML = '';
             carrito.forEach(item => {
                 let tr = document.createElement('tr');
-                tr.innerHTML = 
+                tr.innerHTML = `
                     <td>${item.codigo}</td>
                     <td>${item.nombre}</td>
                     <td>${item.cantidad}</td>
                     <td>$${(item.precio * item.cantidad).toFixed(2)}</td>
-                ;
+                `;
                 tbody.appendChild(tr);
             });
         }
@@ -451,18 +451,18 @@
         function imprimirRecibo(venta) {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
-            doc.text(ID de Venta: ${venta.id}, 10, 10);
-            doc.text(Fecha: ${venta.fecha}, 10, 20);
-            doc.text(Hora: ${venta.hora}, 10, 30);
-            doc.text(Cliente: ${venta.cliente}, 10, 40);
-            doc.text(Total: $${venta.total}, 10, 50);
+            doc.text(`ID de Venta: ${venta.id}`, 10, 10);
+            doc.text(`Fecha: ${venta.fecha}`, 10, 20);
+            doc.text(`Hora: ${venta.hora}`, 10, 30);
+            doc.text(`Cliente: ${venta.cliente}`, 10, 40);
+            doc.text(`Total: $${venta.total}`, 10, 50);
             doc.text('Productos:', 10, 60);
 
             venta.productos.forEach((producto, index) => {
-                doc.text(${index + 1}. ${producto.nombre} - ${producto.cantidad} x $${producto.precio.toFixed(2)} = $${(producto.cantidad * producto.precio).toFixed(2)}, 10, 70 + (index * 10));
+                doc.text(`${index + 1}. ${producto.nombre} - ${producto.cantidad} x $${producto.precio.toFixed(2)} = $${(producto.cantidad * producto.precio).toFixed(2)}`, 10, 70 + (index * 10));
             });
 
-            doc.save(venta_${venta.id}.pdf);
+            doc.save(`venta_${venta.id}.pdf`);
         }
 
         function seleccionarCliente() {
@@ -507,13 +507,13 @@
             ventasBody.innerHTML = '';
             ventasRecientes.forEach(venta => {
                 let tr = document.createElement('tr');
-                tr.innerHTML = 
+                tr.innerHTML = `
                     <td>${venta.id}</td>
                     <td>${venta.fecha}</td>
                     <td>${venta.cliente}</td>
                     <td>$${venta.total}</td>
                     <td><button onclick="reimprimirRecibo(${venta.id})">Reimprimir</button></td>
-                ;
+                `;
                 ventasBody.appendChild(tr);
             });
             document.getElementById('ventas-recientes').style.display = 'block';
