@@ -46,6 +46,25 @@
             background-color: #0056b3;
         }
 
+        .payment-options {
+            display: none;
+            background-color: #e9ecef;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            margin-top: 10px;
+        }
+
+        .payment-options div {
+            padding: 10px;
+            cursor: pointer;
+            text-align: center;
+        }
+
+        .payment-options div:hover {
+            background-color: #007bff;
+            color: white;
+        }
+
         .total {
             font-size: 1.5em;
             margin-top: 20px;
@@ -238,7 +257,7 @@
         </div>
         
         <div id="camera-container" class="camera-container">
-            <video id="video-preview"></video>
+            <video id="video-preview" autoplay></video>
             <button onclick="stopCamera()">Cerrar Cámara</button>
         </div>
         
@@ -263,22 +282,25 @@
             <thead>
                 <tr>
                     <th>ID</th>
+                    <th>Fecha</th>
                     <th>Cliente</th>
                     <th>Total</th>
-                    <th>Fecha</th>
                     <th>Reimprimir</th>
                 </tr>
             </thead>
-            <tbody></tbody>
+            <tbody id="ventas-recientes-body"></tbody>
         </table>
-        <button onclick="cerrarVentasRecientes()">Cerrar</button>
+        <button onclick="printRecibo()">Reimprimir recibo</button>
+        <button onclick="closeVentasRecientes()">Cerrar</button>
     </div>
+
     <script>
         let carrito = JSON.parse(localStorage.getItem('carrito')) || [];
+        let ventasRecientes = JSON.parse(localStorage.getItem('ventasRecientes')) || [];
         let total = carrito.reduce((sum, item) => sum + item.precio * item.cantidad, 0);
         let codigoInput = '';
-        let ventasRecientes = JSON.parse(localStorage.getItem('ventasRecientes')) || [];
-        
+        let currentVentaId = 1;  // Asignar un ID único para cada venta
+
         document.getElementById('total-amount').textContent = total.toFixed(2);
 
         function startCamera() {
@@ -343,11 +365,11 @@
             return new Promise((resolve) => {
                 setTimeout(() => {
                     const productos = {
-                        '001': {codigo: '001', nombre: 'Rosa Roja', precio: 5.99},
-                        '002': {codigo: '002', nombre: 'Orquídea Blanca', precio: 15.99},
-                        '003': {codigo: '003', nombre: 'Cactus Pequeño', precio: 3.99},
-                        '004': {codigo: '004', nombre: 'Helecho Boston', precio: 8.99},
-                        '005': {codigo: '005', nombre: 'Lirio Asiático', precio: 6.99}
+                        'P001': {codigo: 'P001', nombre: 'Rosa Roja', precio: 5.99},
+                        'P002': {codigo: 'P002', nombre: 'Orquídea Blanca', precio: 15.99},
+                        'P003': {codigo: 'P003', nombre: 'Cactus Pequeño', precio: 3.99},
+                        'P004': {codigo: 'P004', nombre: 'Helecho Boston', precio: 8.99},
+                        'P005': {codigo: 'P005', nombre: 'Lirio Asiático', precio: 6.99}
                     };
                     resolve(productos[codigo]);
                 }, 300);
@@ -374,13 +396,90 @@
             document.getElementById('total-amount').textContent = total.toFixed(2);
         }
 
+        function showNotification(message) {
+            let notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.style.display = 'block';
+            setTimeout(() => notification.style.display = 'none', 3000);
+        }
+
+        function togglePaymentOptions() {
+            let options = document.getElementById('payment-options');
+            options.style.display = options.style.display === 'block' ? 'none' : 'block';
+        }
+
+        function selectPaymentMethod(method) {
+            document.getElementById('payment-method').textContent = method;
+            document.getElementById('payment-options').style.display = 'none';
+        }
+
+        function finalizarVenta() {
+            if (carrito.length === 0) {
+                showNotification("No hay productos en el carrito");
+                return;
+            }
+
+            if (!confirm("¿Deseas confirmar la venta?")) {
+                return;
+            }
+
+            const cliente = document.getElementById('cliente-seleccionado').textContent;
+            const venta = {
+                id: currentVentaId++,
+                fecha: new Date().toLocaleDateString(),
+                hora: new Date().toLocaleTimeString(),
+                cliente: cliente,
+                total: total.toFixed(2),
+                productos: carrito
+            };
+
+            // Guardar la venta en ventas recientes
+            ventasRecientes.push(venta);
+            localStorage.setItem('ventasRecientes', JSON.stringify(ventasRecientes));
+
+            // Imprimir recibo en PDF
+            imprimirRecibo(venta);
+
+            // Limpiar carrito
+            localStorage.removeItem('carrito');
+            carrito = [];
+            actualizarTablaProductos();
+            calcularTotal();
+            showNotification("Venta finalizada exitosamente");
+        }
+
+        function imprimirRecibo(venta) {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            doc.text(`ID de Venta: ${venta.id}`, 10, 10);
+            doc.text(`Fecha: ${venta.fecha}`, 10, 20);
+            doc.text(`Hora: ${venta.hora}`, 10, 30);
+            doc.text(`Cliente: ${venta.cliente}`, 10, 40);
+            doc.text(`Total: $${venta.total}`, 10, 50);
+            doc.text('Productos:', 10, 60);
+
+            venta.productos.forEach((producto, index) => {
+                doc.text(`${index + 1}. ${producto.nombre} - ${producto.cantidad} x $${producto.precio.toFixed(2)} = $${(producto.cantidad * producto.precio).toFixed(2)}`, 10, 70 + (index * 10));
+            });
+
+            doc.save(`venta_${venta.id}.pdf`);
+        }
+
+        function seleccionarCliente() {
+            let cliente = prompt("Ingresa el nombre del cliente:");
+            if (cliente) {
+                document.getElementById('cliente-seleccionado').textContent = cliente;
+            }
+        }
+
+        function showProducts() {
+            document.getElementById('productos-table').style.display = 'block';
+        }
+
         function toggleKeyboard() {
             let keyboard = document.getElementById('keyboard');
-            if (keyboard.style.display === 'none' || keyboard.style.display === '') {
-                keyboard.style.display = 'grid';
-            } else {
-                keyboard.style.display = 'none';
-            }
+            keyboard.style.display = keyboard.style.display === 'grid' ? 'none' : 'grid';
+            document.getElementById('input-display').style.display = keyboard.style.display === 'grid' ? 'block' : 'none';
         }
 
         function addDigit(digit) {
@@ -394,95 +493,45 @@
         }
 
         function confirmInput() {
-            if (codigoInput) {
+            if (codigoInput !== '') {
                 agregarProducto(codigoInput);
                 clearInput();
-                toggleKeyboard(); // Ocultar el teclado después de confirmar
+                toggleKeyboard();
+            } else {
+                showNotification("Ingrese un código válido");
             }
-        }
-
-        function finalizarVenta() {
-            if (carrito.length === 0) {
-                showNotification("No hay productos en el carrito");
-                return;
-            }
-            let venta = {
-                id: new Date().getTime().toString(),
-                cliente: document.getElementById('cliente-seleccionado').textContent,
-                total: total.toFixed(2),
-                fecha: new Date().toLocaleString(),
-                productos: [...carrito]
-            };
-            ventasRecientes.push(venta);
-            localStorage.setItem('ventasRecientes', JSON.stringify(ventasRecientes));
-            imprimirTicket(venta);
-            carrito = [];
-            localStorage.removeItem('carrito');
-            actualizarTablaProductos();
-            calcularTotal();
-            showNotification("Venta finalizada con éxito");
-        }
-
-        function imprimirTicket(venta) {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-
-            doc.text("Ticket de Venta", 10, 10);
-            doc.text(`ID de Compra: ${venta.id}`, 10, 20);
-            doc.text(`Fecha: ${venta.fecha}`, 10, 30);
-            doc.text(`Cliente: ${venta.cliente}`, 10, 40);
-            
-            let startY = 50;
-            venta.productos.forEach((item, index) => {
-                doc.text(`${index + 1}. ${item.nombre} - Cantidad: ${item.cantidad} - Precio: $${(item.precio * item.cantidad).toFixed(2)}`, 10, startY);
-                startY += 10;
-            });
-            
-            doc.text(`Total: $${venta.total}`, 10, startY + 10);
-
-            doc.save(`ticket_${venta.id}.pdf`);
         }
 
         function verVentasRecientes() {
-            let tablaVentas = document.querySelector("#tabla-ventas-recientes tbody");
-            tablaVentas.innerHTML = '';
-
+            let ventasBody = document.getElementById('ventas-recientes-body');
+            ventasBody.innerHTML = '';
             ventasRecientes.forEach(venta => {
                 let tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td>${venta.id}</td>
+                    <td>${venta.fecha}</td>
                     <td>${venta.cliente}</td>
                     <td>$${venta.total}</td>
-                    <td>${venta.fecha}</td>
-                    <td><button onclick="reimprimirTicket('${venta.id}')">Reimprimir</button></td>
+                    <td><button onclick="reimprimirRecibo(${venta.id})">Reimprimir</button></td>
                 `;
-                tablaVentas.appendChild(tr);
+                ventasBody.appendChild(tr);
             });
-
             document.getElementById('ventas-recientes').style.display = 'block';
         }
 
-        function cerrarVentasRecientes() {
-            document.getElementById('ventas-recientes').style.display = 'none';
-        }
-
-        function reimprimirTicket(id) {
-            let venta = ventasRecientes.find(v => v.id === id);
+        function reimprimirRecibo(id) {
+            const venta = ventasRecientes.find(v => v.id === id);
             if (venta) {
-                imprimirTicket(venta);
-            } else {
-                showNotification("Venta no encontrada");
+                imprimirRecibo(venta);
             }
         }
 
-        function showNotification(message) {
-            let notification = document.getElementById('notification');
-            notification.textContent = message;
-            notification.style.display = 'block';
-            setTimeout(() => {
-                notification.style.display = 'none';
-            }, 3000);
+        function closeVentasRecientes() {
+            document.getElementById('ventas-recientes').style.display = 'none';
         }
+
+        // Inicializar la tabla de productos al cargar la página
+        actualizarTablaProductos();
     </script>
 </body>
 </html>
