@@ -4,158 +4,112 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PTV - Venta</title>
-    <script src="https://cdn.jsdelivr.net/npm/quagga@0.12.1/dist/quagga.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.7/html5-qrcode.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
             background-color: #f4f4f4;
-            margin: 0;
-            padding: 0;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
+            margin: 0;
         }
 
         .container {
             background-color: white;
             padding: 20px;
             border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-            width: 400px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 300px;
         }
 
         h1 {
             text-align: center;
             color: #333;
-            margin-bottom: 20px;
         }
 
         .menu-item {
-            background-color: #007bff;
+            background-color: #4CAF50;
             color: white;
             padding: 10px;
-            border-radius: 5px;
             margin-bottom: 10px;
-            cursor: pointer;
-            text-align: center;
-        }
-
-        .menu-item:hover {
-            background-color: #0056b3;
-        }
-
-        .payment-options {
-            display: none;
-            background-color: #e9ecef;
             border-radius: 5px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-            margin-top: 10px;
-        }
-
-        .payment-options div {
-            padding: 10px;
             cursor: pointer;
             text-align: center;
-        }
-
-        .payment-options div:hover {
-            background-color: #007bff;
-            color: white;
         }
 
         .total {
-            font-size: 1.5em;
-            margin-top: 20px;
             text-align: center;
-        }
-
-        .total span {
-            color: #28a745;
+            margin: 20px 0;
+            font-size: 1.2em;
+            color: #333;
         }
 
         button {
-            background-color: #28a745;
+            background-color: #008CBA;
             color: white;
-            padding: 10px;
+            padding: 10px 15px;
             border: none;
             border-radius: 5px;
             cursor: pointer;
             width: 100%;
-            font-size: 1em;
-            margin-top: 20px;
-        }
-
-        button:hover {
-            background-color: #218838;
         }
 
         .action-buttons {
             display: flex;
             justify-content: space-between;
-            margin-top: 20px;
+            margin-top: 10px;
         }
 
         .action-button {
-            background-color: #6c757d;
+            background-color: #f44336;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
             width: 48%;
         }
 
-        .action-button:hover {
-            background-color: #5a6268;
-        }
-
-        .input-display {
-            margin-top: 20px;
-            font-size: 1.2em;
+        #input-display {
             text-align: center;
+            margin-top: 10px;
+            font-size: 1.2em;
         }
 
-        .keyboard {
+        #keyboard {
             display: none;
             grid-template-columns: repeat(3, 1fr);
             gap: 10px;
-            margin-top: 20px;
+            margin-top: 10px;
         }
 
-        .keyboard button {
-            padding: 20px;
-            font-size: 1.2em;
-        }
-
-        .camera-container {
-            display: none;
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background-color: white;
-            border: 1px solid #ccc;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-            z-index: 1000;
-        }
-
-        .camera-container video {
-            width: 100%;
-            height: auto;
-        }
-
-        .notification {
-            display: none;
-            background-color: #28a745;
+        #keyboard button {
+            background-color: #333;
             color: white;
             padding: 10px;
-            margin-top: 20px;
+            border: none;
             border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #camera-container {
+            display: none;
             text-align: center;
+        }
+
+        #notification {
+            text-align: center;
+            margin-top: 10px;
+            font-size: 1em;
+            color: #ff5722;
         }
 
         #productos-table {
             width: 100%;
-            margin-top: 20px;
+            margin-top: 10px;
             border-collapse: collapse;
         }
 
@@ -166,7 +120,8 @@
         }
 
         #productos-table th {
-            background-color: #f2f2f2;
+            background-color: #4CAF50;
+            color: white;
         }
 
         #ventas-recientes {
@@ -176,39 +131,39 @@
             left: 50%;
             transform: translate(-50%, -50%);
             background-color: white;
-            border: 1px solid #ccc;
             padding: 20px;
             border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-            z-index: 1000;
-            width: 80%;
-            max-height: 80%;
-            overflow-y: auto;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 500px;
         }
 
-        #ventas-recientes table {
+        #tabla-ventas-recientes {
             width: 100%;
+            margin-top: 10px;
             border-collapse: collapse;
         }
 
-        #ventas-recientes table th, #ventas-recientes table td {
+        #tabla-ventas-recientes th, #tabla-ventas-recientes td {
             border: 1px solid #ddd;
             padding: 8px;
             text-align: left;
         }
 
-        #ventas-recientes table th {
-            background-color: #f2f2f2;
+        #tabla-ventas-recientes th {
+            background-color: #4CAF50;
+            color: white;
         }
 
         #ventas-recientes button {
-            margin-top: 10px;
-            padding: 5px 10px;
-            background-color: #28a745;
+            background-color: #f44336;
             color: white;
+            padding: 10px;
             border: none;
             border-radius: 5px;
             cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
         }
     </style>
 </head>
@@ -218,13 +173,11 @@
         
         <div class="menu-item" onclick="seleccionarCliente()">Cliente: <span id="cliente-seleccionado">Seleccionar cliente</span> ▶</div>
         
-        <div class="menu-item" onclick="showProducts()">Productos: Ver productos escaneados ▶</div>
-        
         <div class="menu-item" onclick="togglePaymentOptions()">
             Método de pago: <span id="payment-method">Seleccionar método</span> ▶
         </div>
         
-        <div id="payment-options" class="payment-options">
+        <div id="payment-options" class="payment-options" style="display:none;">
             <div onclick="selectPaymentMethod('Efectivo')">Efectivo</div>
             <div onclick="selectPaymentMethod('Transferencia')">Transferencia</div>
         </div>
@@ -234,9 +187,8 @@
         <button onclick="finalizarVenta()">Finalizar venta</button>
         
         <div class="action-buttons">
-            <button class="action-button" onclick="startCamera()">Escanear código de barras</button>
+            <button class="action-button" onclick="startCamera()">Escanear código QR</button>
             <button class="action-button" onclick="toggleKeyboard()">Agregar código manualmente</button>
-            <button class="action-button" onclick="verVentasRecientes()">Ver ventas recientes</button>
         </div>
         
         <div id="input-display" class="input-display">Código: <span id="codigo-input"></span></div>
@@ -257,7 +209,7 @@
         </div>
         
         <div id="camera-container" class="camera-container">
-            <video id="video-preview" autoplay></video>
+            <div id="reader"></div>
             <button onclick="stopCamera()">Cerrar Cámara</button>
         </div>
         
@@ -288,250 +240,209 @@
                     <th>Reimprimir</th>
                 </tr>
             </thead>
-            <tbody id="ventas-recientes-body"></tbody>
+            <tbody>
+                <!-- Aquí se agregarán dinámicamente las filas de ventas recientes -->
+            </tbody>
         </table>
-        <button onclick="printRecibo()">Reimprimir recibo</button>
-        <button onclick="closeVentasRecientes()">Cerrar</button>
+        <button onclick="cerrarVentasRecientes()">Cerrar</button>
     </div>
-
+    
     <script>
-        let carrito = JSON.parse(localStorage.getItem('carrito')) || [];
-        let ventasRecientes = JSON.parse(localStorage.getItem('ventasRecientes')) || [];
-        let total = carrito.reduce((sum, item) => sum + item.precio * item.cantidad, 0);
-        let codigoInput = '';
-        let currentVentaId = 1;  // Asignar un ID único para cada venta
-
-        document.getElementById('total-amount').textContent = total.toFixed(2);
-
-        function startCamera() {
-            Quagga.init({
-                inputStream: {
-                    name: "Live",
-                    type: "LiveStream",
-                    target: document.querySelector("#video-preview"),
-                    constraints: {
-                        facingMode: "environment" // Usa la cámara trasera
-                    }
-                },
-                decoder: {
-                    readers: ["ean_reader", "ean_8_reader", "code_128_reader"]
-                }
-            }, function(err) {
-                if (err) {
-                    console.error(err);
-                    showNotification("Error al iniciar la cámara");
-                    return;
-                }
-                Quagga.start();
-            });
-
-            Quagga.onDetected(function(result) {
-                let code = result.codeResult.code;
-                agregarProducto(code);
-                showNotification("Se ha escaneado el código: " + code);
-            });
-
-            document.getElementById('camera-container').style.display = 'block';
-        }
-
-        function stopCamera() {
-            Quagga.stop();
-            document.getElementById('camera-container').style.display = 'none';
-        }
-
-        function agregarProducto(codigo) {
-            obtenerDetallesProducto(codigo).then(producto => {
-                if (producto) {
-                    let itemExistente = carrito.find(item => item.codigo === codigo);
-                    if (itemExistente) {
-                        itemExistente.cantidad++;
-                    } else {
-                        carrito.push({...producto, cantidad: 1});
-                    }
-                    actualizarTablaProductos();
-                    calcularTotal();
-                    localStorage.setItem('carrito', JSON.stringify(carrito));
-                    showNotification("Se ha agregado el producto: " + producto.nombre);
-                } else {
-                    showNotification("Producto no encontrado");
-                }
-            }).catch(err => {
-                console.error(err);
-                showNotification("Error al obtener los detalles del producto");
-            });
-        }
-
-        function obtenerDetallesProducto(codigo) {
-            return new Promise((resolve) => {
-                setTimeout(() => {
-                    const productos = {
-                        'P001': {codigo: 'P001', nombre: 'Rosa Roja', precio: 5.99},
-                        'P002': {codigo: 'P002', nombre: 'Orquídea Blanca', precio: 15.99},
-                        'P003': {codigo: 'P003', nombre: 'Cactus Pequeño', precio: 3.99},
-                        'P004': {codigo: 'P004', nombre: 'Helecho Boston', precio: 8.99},
-                        'P005': {codigo: 'P005', nombre: 'Lirio Asiático', precio: 6.99}
-                    };
-                    resolve(productos[codigo]);
-                }, 300);
-            });
-        }
-
-        function actualizarTablaProductos() {
-            let tbody = document.getElementById('productos-body');
-            tbody.innerHTML = '';
-            carrito.forEach(item => {
-                let tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>${item.codigo}</td>
-                    <td>${item.nombre}</td>
-                    <td>${item.cantidad}</td>
-                    <td>$${(item.precio * item.cantidad).toFixed(2)}</td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
-
-        function calcularTotal() {
-            total = carrito.reduce((sum, item) => sum + item.precio * item.cantidad, 0);
-            document.getElementById('total-amount').textContent = total.toFixed(2);
-        }
-
-        function showNotification(message) {
-            let notification = document.getElementById('notification');
-            notification.textContent = message;
-            notification.style.display = 'block';
-            setTimeout(() => notification.style.display = 'none', 3000);
-        }
-
+        let productos = [];
+        let totalAmount = 0;
+        let ventasRecientes = [];
+        
         function togglePaymentOptions() {
-            let options = document.getElementById('payment-options');
-            options.style.display = options.style.display === 'block' ? 'none' : 'block';
+            const options = document.getElementById('payment-options');
+            options.style.display = options.style.display === 'none' ? 'block' : 'none';
         }
-
+        
         function selectPaymentMethod(method) {
-            document.getElementById('payment-method').textContent = method;
-            document.getElementById('payment-options').style.display = 'none';
+            document.getElementById('payment-method').innerText = method;
+            togglePaymentOptions();
         }
-
-        function finalizarVenta() {
-            if (carrito.length === 0) {
-                showNotification("No hay productos en el carrito");
-                return;
-            }
-
-            if (!confirm("¿Deseas confirmar la venta?")) {
-                return;
-            }
-
-            const cliente = document.getElementById('cliente-seleccionado').textContent;
-            const venta = {
-                id: currentVentaId++,
-                fecha: new Date().toLocaleDateString(),
-                hora: new Date().toLocaleTimeString(),
-                cliente: cliente,
-                total: total.toFixed(2),
-                productos: carrito
-            };
-
-            // Guardar la venta en ventas recientes
-            ventasRecientes.push(venta);
-            localStorage.setItem('ventasRecientes', JSON.stringify(ventasRecientes));
-
-            // Imprimir recibo en PDF
-            imprimirRecibo(venta);
-
-            // Limpiar carrito
-            localStorage.removeItem('carrito');
-            carrito = [];
-            actualizarTablaProductos();
-            calcularTotal();
-            showNotification("Venta finalizada exitosamente");
-        }
-
-        function imprimirRecibo(venta) {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-            doc.text(`ID de Venta: ${venta.id}`, 10, 10);
-            doc.text(`Fecha: ${venta.fecha}`, 10, 20);
-            doc.text(`Hora: ${venta.hora}`, 10, 30);
-            doc.text(`Cliente: ${venta.cliente}`, 10, 40);
-            doc.text(`Total: $${venta.total}`, 10, 50);
-            doc.text('Productos:', 10, 60);
-
-            venta.productos.forEach((producto, index) => {
-                doc.text(`${index + 1}. ${producto.nombre} - ${producto.cantidad} x $${producto.precio.toFixed(2)} = $${(producto.cantidad * producto.precio).toFixed(2)}`, 10, 70 + (index * 10));
+        
+        function startCamera() {
+            const html5QrCode = new Html5Qrcode("reader");
+            html5QrCode.start(
+                { facingMode: "environment" },
+                {
+                    fps: 10,
+                    qrbox: 250
+                },
+                qrCodeMessage => {
+                    agregarProducto(qrCodeMessage);
+                    showNotification("Se ha escaneado el código: " + qrCodeMessage);
+                    stopCamera();
+                },
+                errorMessage => {
+                    console.log(`Error escaneando: ${errorMessage}`);
+                }
+            ).catch(err => {
+                console.error(err);
+                showNotification("Error al iniciar la cámara");
             });
-
-            doc.save(`venta_${venta.id}.pdf`);
+        
+            const cameraContainer = document.getElementById('camera-container');
+            cameraContainer.style.display = 'block';
         }
-
-        function seleccionarCliente() {
-            let cliente = prompt("Ingresa el nombre del cliente:");
-            if (cliente) {
-                document.getElementById('cliente-seleccionado').textContent = cliente;
-            }
+        
+        function stopCamera() {
+            const html5QrCode = Html5Qrcode.getCameras()
+                .then(cameras => {
+                    const html5QrCode = new Html5Qrcode("reader");
+                    html5QrCode.stop().then(ignore => {
+                        document.getElementById('reader').innerHTML = "";
+                    }).catch(err => {
+                        console.error(err);
+                    });
+                })
+                .catch(err => {
+                    console.error(err);
+                });
+            
+            const cameraContainer = document.getElementById('camera-container');
+            cameraContainer.style.display = 'none';
         }
-
-        function showProducts() {
-            document.getElementById('productos-table').style.display = 'block';
-        }
-
+        
         function toggleKeyboard() {
-            let keyboard = document.getElementById('keyboard');
-            keyboard.style.display = keyboard.style.display === 'grid' ? 'none' : 'grid';
-            document.getElementById('input-display').style.display = keyboard.style.display === 'grid' ? 'block' : 'none';
+            const keyboard = document.getElementById('keyboard');
+            keyboard.style.display = keyboard.style.display === 'none' ? 'grid' : 'none';
         }
-
+        
         function addDigit(digit) {
-            codigoInput += digit;
-            document.getElementById('codigo-input').textContent = codigoInput;
+            const input = document.getElementById('codigo-input');
+            input.innerText += digit;
         }
-
+        
         function clearInput() {
-            codigoInput = '';
-            document.getElementById('codigo-input').textContent = codigoInput;
+            document.getElementById('codigo-input').innerText = '';
         }
-
+        
         function confirmInput() {
-            if (codigoInput !== '') {
-                agregarProducto(codigoInput);
+            const codigo = document.getElementById('codigo-input').innerText;
+            if (codigo) {
+                agregarProducto(codigo);
+                showNotification("Se ha agregado el producto con código: " + codigo);
                 clearInput();
                 toggleKeyboard();
-            } else {
-                showNotification("Ingrese un código válido");
             }
         }
-
-        function verVentasRecientes() {
-            let ventasBody = document.getElementById('ventas-recientes-body');
-            ventasBody.innerHTML = '';
+        
+        function agregarProducto(codigo) {
+            // Simulación de la obtención de datos del producto
+            const producto = {
+                codigo: codigo,
+                descripcion: "Producto " + codigo,
+                cantidad: 1,
+                precio: Math.floor(Math.random() * 100) + 1
+            };
+            
+            productos.push(producto);
+            actualizarTablaProductos();
+        }
+        
+        function actualizarTablaProductos() {
+            const tbody = document.getElementById('productos-body');
+            tbody.innerHTML = '';
+            totalAmount = 0;
+            
+            productos.forEach(producto => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${producto.codigo}</td>
+                    <td>${producto.descripcion}</td>
+                    <td>${producto.cantidad}</td>
+                    <td>$${producto.precio.toFixed(2)}</td>
+                `;
+                tbody.appendChild(tr);
+                totalAmount += producto.precio * producto.cantidad;
+            });
+            
+            document.getElementById('total-amount').innerText = totalAmount.toFixed(2);
+        }
+        
+        function showNotification(message) {
+            const notification = document.getElementById('notification');
+            notification.innerText = message;
+            setTimeout(() => notification.innerText = '', 3000);
+        }
+        
+        function finalizarVenta() {
+            const cliente = document.getElementById('cliente-seleccionado').innerText;
+            const metodoPago = document.getElementById('payment-method').innerText;
+            
+            if (cliente === 'Seleccionar cliente' || metodoPago === 'Seleccionar método') {
+                showNotification("Selecciona un cliente y un método de pago antes de finalizar la venta.");
+                return;
+            }
+            
+            const venta = {
+                id: ventasRecientes.length + 1,
+                fecha: new Date().toLocaleString(),
+                cliente: cliente,
+                total: totalAmount.toFixed(2),
+                productos: productos,
+                metodoPago: metodoPago
+            };
+            
+            ventasRecientes.push(venta);
+            generarTicketPDF(venta);
+            actualizarTablaVentasRecientes();
+            
+            productos = [];
+            actualizarTablaProductos();
+        }
+        
+        function generarTicketPDF(venta) {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            doc.setFontSize(12);
+            doc.text("Ticket de Compra", 10, 10);
+            doc.text("ID Venta: " + venta.id, 10, 20);
+            doc.text("Fecha: " + venta.fecha, 10, 30);
+            doc.text("Cliente: " + venta.cliente, 10, 40);
+            doc.text("Método de pago: " + venta.metodoPago, 10, 50);
+            doc.text("Productos:", 10, 60);
+            
+            let y = 70;
+            venta.productos.forEach(producto => {
+                doc.text(`${producto.descripcion} - $${producto.precio.toFixed(2)} x ${producto.cantidad}`, 10, y);
+                y += 10;
+            });
+            
+            doc.text("Total: $" + venta.total, 10, y + 10);
+            doc.save("ticket_venta_" + venta.id + ".pdf");
+        }
+        
+        function actualizarTablaVentasRecientes() {
+            const tbody = document.querySelector('#tabla-ventas-recientes tbody');
+            tbody.innerHTML = '';
+            
             ventasRecientes.forEach(venta => {
-                let tr = document.createElement('tr');
+                const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td>${venta.id}</td>
                     <td>${venta.fecha}</td>
                     <td>${venta.cliente}</td>
                     <td>$${venta.total}</td>
-                    <td><button onclick="reimprimirRecibo(${venta.id})">Reimprimir</button></td>
+                    <td><button onclick="generarTicketPDF(${venta.id})">Reimprimir</button></td>
                 `;
-                ventasBody.appendChild(tr);
+                tbody.appendChild(tr);
             });
-            document.getElementById('ventas-recientes').style.display = 'block';
         }
-
-        function reimprimirRecibo(id) {
-            const venta = ventasRecientes.find(v => v.id === id);
-            if (venta) {
-                imprimirRecibo(venta);
+        
+        function seleccionarCliente() {
+            const cliente = prompt("Ingrese el nombre del cliente:");
+            if (cliente) {
+                document.getElementById('cliente-seleccionado').innerText = cliente;
             }
         }
-
-        function closeVentasRecientes() {
-            document.getElementById('ventas-recientes').style.display = 'none';
+        
+        function cerrarVentasRecientes() {
+            const ventasRecientesDiv = document.getElementById('ventas-recientes');
+            ventasRecientesDiv.style.display = 'none';
         }
-
-        // Inicializar la tabla de productos al cargar la página
-        actualizarTablaProductos();
     </script>
 </body>
 </html>
